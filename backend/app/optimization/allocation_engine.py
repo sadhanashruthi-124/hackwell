@@ -3,8 +3,8 @@ Constraint-based allocation engine.
 
 Steps:
 1. Get predicted attendance
-2. Calculate resource demand
-3. Fetch available resources from DB
+2. Calculate resource demand using configurable allocation rules
+3. Fetch available resources from DB (user-scoped)
 4. Check venue capacity
 5. Apply constraints
 6. Allocate resources
@@ -13,7 +13,7 @@ Steps:
 9. Return structured plan
 """
 
-from app.services.resource_service import estimate_demand
+from app.services.resource_service import estimate_demand_with_rules
 
 
 def run_allocation(
@@ -23,8 +23,9 @@ def run_allocation(
     available_resources: dict,    # {"computers": 650, "projectors": 8, ...}
     venues: list[dict],           # [{"name": ..., "capacity": ...}, ...]
     req_resources: dict | None = None,  # explicitly requested by organizer
+    allocation_rules=None,        # AllocationRule model instance or None
 ) -> dict:
-    demand = estimate_demand(predicted_attendance, duration_hours, event_type)
+    demand = estimate_demand_with_rules(predicted_attendance, duration_hours, event_type, allocation_rules)
 
     # Override with explicitly requested quantities if provided
     if req_resources:
@@ -96,7 +97,7 @@ def run_allocation(
         })
 
     # ── Transport schedule ─────────────────────────────────────────────────
-    n_buses = allocation.get("buses", {}).get("allocated", 1)
+    n_buses = allocation.get("buses", {}).get("allocated", 0)
     transport_schedule = _generate_transport_schedule(n_buses)
 
     # ── Event timeline ─────────────────────────────────────────────────────

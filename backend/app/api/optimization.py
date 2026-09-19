@@ -8,11 +8,14 @@ from app.models.event_plan import EventPlan
 from app.models.resource import Resource
 from app.models.venue import Venue
 from app.models.allocation import Allocation
+from app.models.allocation_rule import AllocationRule
+from app.models.historical_event import HistoricalEvent
 from app.models.user import User
 from app.schemas.schemas import OptimizationOut
 from app.api.auth import get_current_user
 from app.optimization.allocation_engine import run_allocation
-from app.ml.attendance_model import predict
+from app.ml.attendance_model import predict, MIN_HISTORICAL_EVENTS
+from sqlalchemy import func
 
 router = APIRouter(prefix="/api/optimization", tags=["optimization"])
 
@@ -23,7 +26,10 @@ async def run_optimization(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    result = await db.execute(select(Event).where(Event.id == event_id))
+    result = await db.execute(select(Event).where(
+        Event.id == event_id,
+        Event.created_by == current_user.id,
+    ))
     event = result.scalar_one_or_none()
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
@@ -33,6 +39,40 @@ async def run_optimization(
     plan = plan_result.scalar_one_or_none()
 
     if not plan:
+        # Need to run prediction first — check historical data
+        count_result = await db.execute(
+            select(func.count()).select_from(HistoricalEvent).where(HistoricalEvent.user_id == current_user.id)
+        )
+        historical_count = count_result.scalar()
+
+        if historical_count < MIN_HISTORICAL_EVENTS:
+            raise HTTPException(
+                status_code=422,
+                detail={
+                    "error": "insufficient_data",
+                    "message": f"Run attendance prediction first. You need at least {MIN_HISTORICAL_EVENTS} historical records (currently have {historical_count}).",
+                    "historical_count": historical_count,
+                    "minimum_required": MIN_HISTORICAL_EVENTS,
+                }
+            )
+
+        # Fetch historical records
+        hist_result = await db.execute(
+            select(HistoricalEvent).where(HistoricalEvent.user_id == current_user.id)
+        )
+        historical_records = [
+            {
+                "event_type": r.event_type,
+                "registrations": r.registrations,
+                "teams": r.teams or 0,
+                "duration_hours": r.duration_hours,
+                "attendance": r.attendance,
+                "day_of_week": r.day_of_week,
+                "month": r.month,
+            }
+            for r in hist_result.scalars().all()
+        ]
+
         pred = predict(
             event_type=event.event_type.value,
             registrations=event.registrations,
@@ -40,6 +80,7 @@ async def run_optimization(
             duration_hours=event.duration_hours,
             day_of_week=event.date.weekday(),
             month=event.date.month,
+            historical_records=historical_records,
         )
         plan = EventPlan(
             event_id=event_id,
@@ -52,21 +93,30 @@ async def run_optimization(
 
     predicted_attendance = plan.predicted_attendance
 
-    # Fetch available resources grouped by type
-    res_result = await db.execute(select(Resource).where(Resource.status == "available"))
+    # Fetch user's resources grouped by type
+    res_result = await db.execute(
+        select(Resource).where(
+            Resource.user_id == current_user.id,
+            Resource.status == "available",
+        )
+    )
     resources = res_result.scalars().all()
     available_resources: dict[str, int] = {}
     for r in resources:
         rtype = r.resource_type.lower()
         available_resources[rtype] = available_resources.get(rtype, 0) + r.available_quantity
 
-    # Fetch venues
+    # Fetch venues (venues are global / shared)
     venue_result = await db.execute(select(Venue))
     venues_db = venue_result.scalars().all()
     venues = [
         {"id": v.id, "name": v.name, "capacity": v.capacity, "venue_type": v.venue_type, "available": v.available}
         for v in venues_db
     ]
+
+    # Get user's configurable allocation rules
+    rule_result = await db.execute(select(AllocationRule).where(AllocationRule.user_id == current_user.id))
+    rules = rule_result.scalar_one_or_none()
 
     # Build explicitly requested resources dict
     req_resources = {
@@ -83,6 +133,7 @@ async def run_optimization(
         available_resources=available_resources,
         venues=venues,
         req_resources=req_resources,
+        allocation_rules=rules,
     )
 
     # Persist allocations

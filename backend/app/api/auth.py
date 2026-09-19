@@ -4,8 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.database.database import get_db
-from app.models.user import User
-from app.schemas.schemas import LoginRequest, TokenResponse, UserCreate, UserOut
+from app.models.user import User, UserRole
+from app.schemas.schemas import LoginRequest, TokenResponse, UserCreate, UserOut, RegisterRequest, RegisterResponse
 from app.core.security import hash_password, verify_password, create_access_token, decode_token
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
@@ -43,11 +43,12 @@ async def login(data: LoginRequest, db: AsyncSession = Depends(get_db)):
         user_id=user.id,
         name=user.name,
         role=user.role.value,
+        onboarding_complete=user.onboarding_complete,
     )
 
 
-@router.post("/register", response_model=UserOut, status_code=201)
-async def register(data: UserCreate, db: AsyncSession = Depends(get_db)):
+@router.post("/register", response_model=RegisterResponse, status_code=201)
+async def register(data: RegisterRequest, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User).where(User.email == data.email))
     if result.scalar_one_or_none():
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -55,11 +56,30 @@ async def register(data: UserCreate, db: AsyncSession = Depends(get_db)):
         name=data.name,
         email=data.email,
         password_hash=hash_password(data.password),
-        role=data.role,
+        role=UserRole.organizer,
+        onboarding_complete=False,
     )
     db.add(user)
     await db.flush()
-    return user
+    token = create_access_token({"sub": str(user.id), "role": user.role.value})
+    return RegisterResponse(
+        access_token=token,
+        user_id=user.id,
+        name=user.name,
+        email=user.email,
+        role=user.role.value,
+        onboarding_complete=False,
+    )
+
+
+@router.post("/complete-onboarding")
+async def complete_onboarding(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    current_user.onboarding_complete = True
+    await db.flush()
+    return {"message": "Onboarding marked complete"}
 
 
 @router.get("/me", response_model=UserOut)

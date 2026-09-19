@@ -1,6 +1,6 @@
 from datetime import date, datetime, timezone
 from typing import Optional
-from sqlalchemy import Integer, Float, String, Date, DateTime
+from sqlalchemy import Integer, Float, String, Date, DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 from app.database.database import Base
 
@@ -9,6 +9,8 @@ class HistoricalEvent(Base):
     __tablename__ = "historical_events"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    event_name: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
     event_type: Mapped[str] = mapped_column(String(100))
     registrations: Mapped[int] = mapped_column(Integer)
     teams: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)

@@ -13,6 +13,8 @@ Output:
   predicted_attendance  (int)
   confidence_low        (int) — 10th percentile of tree predictions
   confidence_high       (int) — 90th percentile of tree predictions
+  historical_events_used (int)
+  model_source          (str) — "base_model" or "user_data"
 """
 
 import os
@@ -26,12 +28,15 @@ from sklearn.preprocessing import LabelEncoder
 MODEL_PATH = Path(__file__).parent / "rf_model.joblib"
 ENCODER_PATH = Path(__file__).parent / "label_encoder.joblib"
 
+# Minimum historical events required to use user data for prediction
+MIN_HISTORICAL_EVENTS = 3
+
 EVENT_TYPES = [
     "hackathon", "symposium", "cultural", "sports",
     "workshop", "seminar", "conference", "other"
 ]
 
-_model: RandomForestRegressor | None = None
+_base_model: RandomForestRegressor | None = None
 _encoder: LabelEncoder | None = None
 
 
@@ -52,14 +57,15 @@ def _get_encoder() -> LabelEncoder:
     return _encoder
 
 
-def get_model() -> RandomForestRegressor:
-    global _model
-    if _model is None:
+def get_base_model() -> RandomForestRegressor:
+    """Return the base model (pre-trained on synthetic data). Used when user has < MIN_HISTORICAL_EVENTS."""
+    global _base_model
+    if _base_model is None:
         if MODEL_PATH.exists():
-            _model = joblib.load(MODEL_PATH)
+            _base_model = joblib.load(MODEL_PATH)
         else:
-            _model = _train_on_seed_data()
-    return _model
+            _base_model = _train_on_seed_data()
+    return _base_model
 
 
 def _prepare_features(
@@ -79,6 +85,40 @@ def _prepare_features(
     return np.array([[et_encoded, registrations, teams, duration_hours, day_of_week, month]])
 
 
+def _train_user_model(historical_records: list[dict]) -> RandomForestRegressor:
+    """Train a model on the user's actual historical records."""
+    enc = _get_encoder()
+    rows = []
+    for rec in historical_records:
+        et = rec.get("event_type", "other")
+        try:
+            et_encoded = enc.transform([et])[0]
+        except ValueError:
+            et_encoded = 7
+        rows.append({
+            "event_type": et_encoded,
+            "registrations": rec["registrations"],
+            "teams": rec.get("teams") or 0,
+            "duration_hours": rec["duration_hours"],
+            "day_of_week": rec["day_of_week"],
+            "month": rec["month"],
+            "attendance": rec["attendance"],
+        })
+    df = pd.DataFrame(rows)
+    X = df[["event_type", "registrations", "teams", "duration_hours", "day_of_week", "month"]]
+    y = df["attendance"]
+
+    model = RandomForestRegressor(
+        n_estimators=100,
+        max_depth=6,
+        min_samples_split=2,
+        random_state=42,
+        n_jobs=-1,
+    )
+    model.fit(X, y)
+    return model
+
+
 def predict(
     event_type: str,
     registrations: int,
@@ -86,8 +126,23 @@ def predict(
     duration_hours: int,
     day_of_week: int,
     month: int,
+    historical_records: list[dict] | None = None,
 ) -> dict:
-    model = get_model()
+    """
+    Predict attendance.
+
+    If historical_records has >= MIN_HISTORICAL_EVENTS entries, train on user data.
+    Otherwise use the pre-trained base model.
+    """
+    n_records = len(historical_records) if historical_records else 0
+
+    if historical_records and n_records >= MIN_HISTORICAL_EVENTS:
+        model = _train_user_model(historical_records)
+        model_source = "user_data"
+    else:
+        model = get_base_model()
+        model_source = "base_model"
+
     X = _prepare_features(event_type, registrations, teams, duration_hours, day_of_week, month)
 
     # Individual tree predictions for confidence interval
@@ -100,11 +155,13 @@ def predict(
         "predicted_attendance": predicted,
         "confidence_low": low,
         "confidence_high": high,
+        "historical_events_used": n_records,
+        "model_source": model_source,
     }
 
 
 def _train_on_seed_data() -> RandomForestRegressor:
-    """Train on synthetic seed data that mirrors the historical_events table."""
+    """Train base model on synthetic seed data. Only runs once when no model file exists."""
     import random
     random.seed(42)
     np.random.seed(42)

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, delete
+from sqlalchemy import select
 from typing import List, Optional
 
 from app.database.database import get_db
@@ -18,7 +18,7 @@ async def list_events(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    query = select(Event).order_by(Event.date.asc())
+    query = select(Event).where(Event.created_by == current_user.id).order_by(Event.date.asc())
     if status:
         query = query.where(Event.status == status)
     result = await db.execute(query)
@@ -43,7 +43,10 @@ async def get_event(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    result = await db.execute(select(Event).where(Event.id == event_id))
+    result = await db.execute(select(Event).where(
+        Event.id == event_id,
+        Event.created_by == current_user.id,
+    ))
     event = result.scalar_one_or_none()
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
@@ -57,7 +60,10 @@ async def update_event(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    result = await db.execute(select(Event).where(Event.id == event_id))
+    result = await db.execute(select(Event).where(
+        Event.id == event_id,
+        Event.created_by == current_user.id,
+    ))
     event = result.scalar_one_or_none()
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
@@ -73,8 +79,12 @@ async def delete_event(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    result = await db.execute(select(Event).where(Event.id == event_id))
+    result = await db.execute(select(Event).where(
+        Event.id == event_id,
+        Event.created_by == current_user.id,
+    ))
     event = result.scalar_one_or_none()
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
     await db.delete(event)
+    await db.flush()

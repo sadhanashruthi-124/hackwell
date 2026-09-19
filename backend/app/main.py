@@ -1,13 +1,13 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import auth, events, resources, venues, predictions, optimization, reports, history
-from app.core.config import settings
+from app.api import auth, events, resources, venues, predictions, optimization, reports, history, institution, settings
+from app.core.config import settings as app_settings
 
 app = FastAPI(
     title="HackWell — Event Planning API",
     description="Smart Event Planning & Resource Optimization Platform",
-    version="1.0.0",
+    version="2.0.0",
 )
 
 # CORS — allow frontend dev server
@@ -28,6 +28,8 @@ app.include_router(predictions.router)
 app.include_router(optimization.router)
 app.include_router(reports.router)
 app.include_router(history.router)
+app.include_router(institution.router)
+app.include_router(settings.router)
 
 
 @app.get("/")

@@ -10,12 +10,29 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class RegisterRequest(BaseModel):
+    name: str
+    email: EmailStr
+    password: str
+
+
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user_id: int
     name: str
     role: str
+    onboarding_complete: bool = False
+
+
+class RegisterResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user_id: int
+    name: str
+    email: str
+    role: str
+    onboarding_complete: bool = False
 
 
 class UserCreate(BaseModel):
@@ -30,7 +47,27 @@ class UserOut(BaseModel):
     name: str
     email: str
     role: str
+    onboarding_complete: bool = False
     created_at: Optional[str] = None
+
+    model_config = {"from_attributes": True}
+
+
+# ── Institution ───────────────────────────────────────────────────────────────
+
+class InstitutionCreate(BaseModel):
+    institution_name: str
+    campus_name: Optional[str] = None
+    location: Optional[str] = None
+    student_population: Optional[int] = None
+
+
+class InstitutionOut(BaseModel):
+    id: int
+    institution_name: str
+    campus_name: Optional[str] = None
+    location: Optional[str] = None
+    student_population: Optional[int] = None
 
     model_config = {"from_attributes": True}
 
@@ -117,6 +154,15 @@ class ResourceCreate(BaseModel):
     status: str = "available"
 
 
+class ResourceUpdate(BaseModel):
+    resource_type: Optional[str] = None
+    name: Optional[str] = None
+    total_quantity: Optional[int] = None
+    available_quantity: Optional[int] = None
+    location: Optional[str] = None
+    status: Optional[str] = None
+
+
 class ResourceOut(BaseModel):
     id: int
     resource_type: str
@@ -144,6 +190,45 @@ class VenueOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
+# ── Historical Events ─────────────────────────────────────────────────────────
+
+class HistoricalEventCreate(BaseModel):
+    event_name: Optional[str] = None
+    event_type: str
+    event_date: date
+    registrations: int
+    teams: Optional[int] = None
+    duration_hours: int
+    attendance: int
+    venue_type: str = "indoor"
+
+
+class HistoricalEventUpdate(BaseModel):
+    event_name: Optional[str] = None
+    event_type: Optional[str] = None
+    event_date: Optional[date] = None
+    registrations: Optional[int] = None
+    teams: Optional[int] = None
+    duration_hours: Optional[int] = None
+    attendance: Optional[int] = None
+    venue_type: Optional[str] = None
+
+
+class HistoricalEventOut(BaseModel):
+    id: int
+    event_name: Optional[str] = None
+    event_type: str
+    registrations: int
+    teams: Optional[int] = None
+    duration_hours: int
+    attendance: int
+    venue_type: str
+    event_date: date
+    attendance_rate: float
+
+    model_config = {"from_attributes": True}
+
+
 # ── Predictions ───────────────────────────────────────────────────────────────
 
 class PredictionOut(BaseModel):
@@ -151,6 +236,8 @@ class PredictionOut(BaseModel):
     predicted_attendance: int
     confidence_low: int
     confidence_high: int
+    historical_events_used: int = 0
+    model_source: str = "base_model"
     input_features: dict
 
 
@@ -166,3 +253,29 @@ class OptimizationOut(BaseModel):
     transport_schedule: list[dict]
     timeline: list[dict]
     status: str  # "ok" | "conflict" | "shortage"
+
+
+# ── Allocation Rules ──────────────────────────────────────────────────────────
+
+class AllocationRuleOut(BaseModel):
+    computers_per_participant: float
+    chairs_per_participant: float
+    projectors_per_n_participants: int
+    buses_per_n_participants: int
+    min_computers: int
+    min_chairs: int
+    min_projectors: int
+    min_buses: int
+
+    model_config = {"from_attributes": True}
+
+
+class AllocationRuleUpdate(BaseModel):
+    computers_per_participant: Optional[float] = None
+    chairs_per_participant: Optional[float] = None
+    projectors_per_n_participants: Optional[int] = None
+    buses_per_n_participants: Optional[int] = None
+    min_computers: Optional[int] = None
+    min_chairs: Optional[int] = None
+    min_projectors: Optional[int] = None
+    min_buses: Optional[int] = None

@@ -6,13 +6,16 @@ interface User {
   name: string
   email: string
   role: string
+  onboarding_complete: boolean
 }
 
 interface AuthContextType {
   user: User | null
   token: string | null
-  login: (email: string, password: string) => Promise<void>
+  login: (email: string, password: string) => Promise<User>
+  register: (name: string, email: string, password: string) => Promise<User>
   logout: () => void
+  markOnboardingComplete: () => Promise<void>
   isLoading: boolean
 }
 
@@ -35,14 +38,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(false)
   }, [])
 
-  const login = async (email: string, password: string) => {
-    const res = await authAPI.login(email, password)
-    const data = res.data
-    localStorage.setItem('token', data.access_token)
-    const userObj = { id: data.user_id, name: data.name, email, role: data.role }
+  const _storeSession = (data: any, email?: string) => {
+    const token = data.access_token
+    localStorage.setItem('token', token)
+    const userObj: User = {
+      id: data.user_id,
+      name: data.name,
+      email: email || data.email || '',
+      role: data.role,
+      onboarding_complete: data.onboarding_complete ?? false,
+    }
     localStorage.setItem('user', JSON.stringify(userObj))
-    setToken(data.access_token)
+    setToken(token)
     setUser(userObj)
+    return userObj
+  }
+
+  const login = async (email: string, password: string): Promise<User> => {
+    const res = await authAPI.login(email, password)
+    return _storeSession(res.data, email)
+  }
+
+  const register = async (name: string, email: string, password: string): Promise<User> => {
+    const res = await authAPI.register(name, email, password)
+    return _storeSession(res.data, email)
+  }
+
+  const markOnboardingComplete = async () => {
+    await authAPI.completeOnboarding()
+    if (user) {
+      const updated = { ...user, onboarding_complete: true }
+      setUser(updated)
+      localStorage.setItem('user', JSON.stringify(updated))
+    }
   }
 
   const logout = () => {
@@ -53,7 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, token, login, register, logout, markOnboardingComplete, isLoading }}>
       {children}
     </AuthContext.Provider>
   )
