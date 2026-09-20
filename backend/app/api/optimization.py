@@ -5,6 +5,7 @@ from sqlalchemy import select
 from app.database.database import get_db
 from app.models.event import Event
 from app.models.event_plan import EventPlan
+from app.models.historical_event import HistoricalEvent
 from app.models.resource import Resource
 from app.models.venue import Venue
 from app.models.allocation import Allocation
@@ -12,7 +13,7 @@ from app.models.user import User
 from app.schemas.schemas import OptimizationOut
 from app.api.auth import get_current_user
 from app.optimization.allocation_engine import run_allocation
-from app.ml.attendance_model import predict
+from app.ml.attendance_model import predict_from_records
 
 router = APIRouter(prefix="/api/optimization", tags=["optimization"])
 
@@ -33,22 +34,36 @@ async def run_optimization(
     plan = plan_result.scalar_one_or_none()
 
     if not plan:
-        pred = predict(
-            event_type=event.event_type.value,
-            registrations=event.registrations,
-            teams=event.teams or 0,
-            duration_hours=event.duration_hours,
-            day_of_week=event.date.weekday(),
-            month=event.date.month,
-        )
+        hist_result = await db.execute(select(HistoricalEvent))
+        historical_records = hist_result.scalars().all()
+        if len(historical_records) >= 3:
+            pred = predict_from_records(
+                records=historical_records,
+                event_type=event.event_type.value,
+                registrations=event.registrations,
+                teams=event.teams or 0,
+                duration_hours=event.duration_hours,
+                day_of_week=event.date.weekday(),
+                month=event.date.month,
+            )
+            predicted_attendance = pred["predicted_attendance"]
+            confidence_low = pred["confidence_low"]
+            confidence_high = pred["confidence_high"]
+        else:
+            # Fallback to direct registrations if historical data is not yet loaded
+            predicted_attendance = event.expected_participants or event.registrations
+            confidence_low = int(predicted_attendance * 0.9)
+            confidence_high = int(predicted_attendance * 1.1)
+
         plan = EventPlan(
             event_id=event_id,
-            predicted_attendance=pred["predicted_attendance"],
-            confidence_low=pred["confidence_low"],
-            confidence_high=pred["confidence_high"],
+            predicted_attendance=predicted_attendance,
+            confidence_low=confidence_low,
+            confidence_high=confidence_high,
         )
         db.add(plan)
         await db.flush()
+
 
     predicted_attendance = plan.predicted_attendance
 

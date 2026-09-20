@@ -14,7 +14,6 @@ export default function Optimization() {
   const [loading, setLoading] = useState(false)
   const [running, setRunning] = useState(false)
 
-  // Load events list for dropdown / default
   useEffect(() => {
     eventsAPI.list().then(res => {
       setEvents(res.data)
@@ -57,9 +56,9 @@ export default function Optimization() {
   }
 
   const alertIcon = (level: string) => {
-    if (level === 'error') return <XCircle size={15} className="text-red-500 mt-0.5 shrink-0" />
-    if (level === 'warning') return <TriangleAlert size={15} className="text-amber-500 mt-0.5 shrink-0" />
-    return <CheckCircle2 size={15} className="text-green-500 mt-0.5 shrink-0" />
+    if (level === 'error') return <XCircle size={15} className="text-red-400 mt-0.5 shrink-0" />
+    if (level === 'warning') return <TriangleAlert size={15} className="text-amber-400 mt-0.5 shrink-0" />
+    return <CheckCircle2 size={15} className="text-green-400 mt-0.5 shrink-0" />
   }
 
   return (
@@ -69,9 +68,9 @@ export default function Optimization() {
       <div className="flex-1 p-8 overflow-auto space-y-5">
         {/* Event selector bar */}
         {events.length > 0 && (
-          <div className="bg-white border border-slate-200 rounded-lg px-5 py-3 flex items-center justify-between">
+          <div className="glass-card rounded-2xl px-5 py-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <span className="text-xs font-semibold uppercase text-slate-500 tracking-wider">Select Event:</span>
+              <span className="text-[10px] font-semibold uppercase text-white/30 tracking-widest">Select Event:</span>
               <select
                 value={selectedId ?? ''}
                 onChange={e => {
@@ -79,7 +78,7 @@ export default function Optimization() {
                   setSelectedId(id)
                   navigate(`/optimization/${id}`)
                 }}
-                className="text-sm font-medium text-slate-900 border border-slate-200 rounded px-3 py-1.5 focus:outline-none focus:border-blue-600"
+                className="input-dark text-sm font-medium px-3 py-1.5"
               >
                 {events.map(e => (
                   <option key={e.id} value={e.id}>{e.name} ({e.event_type})</option>
@@ -87,7 +86,7 @@ export default function Optimization() {
               </select>
             </div>
             {event && (
-              <span className="text-xs text-slate-500">
+              <span className="text-xs text-white/30">
                 {event.date} · {event.registrations.toLocaleString()} registrations
               </span>
             )}
@@ -95,28 +94,35 @@ export default function Optimization() {
         )}
 
         {loading ? (
-          <div className="text-sm text-slate-400">Loading...</div>
+          <div className="text-sm text-white/30">Loading...</div>
         ) : !event ? (
-          <div className="text-sm text-red-600">No events found. Create an event first.</div>
+          <div className="text-sm text-red-400">No events found. Create an event first.</div>
         ) : (
           <div className="space-y-5">
             {/* Action bar */}
-            <div className="bg-white border border-slate-200 rounded-lg px-6 py-4 flex items-center justify-between">
+            <div className="glass-card rounded-2xl px-6 py-4 flex items-center justify-between">
               <div>
-                <h2 className="text-sm font-semibold text-slate-900">{event.name}</h2>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <h2 className="text-sm font-semibold text-white">{event.name}</h2>
+                <p className="text-xs text-white/30 mt-0.5">
                   {new Date(event.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })} · {event.duration_hours}h · {event.registrations.toLocaleString()} registrations
                 </p>
               </div>
               <div className="flex items-center gap-3">
                 {plan && (
-                  <button onClick={() => navigate(`/plans/${selectedId}`)} className="flex items-center gap-1.5 px-3 py-2 border border-slate-200 text-sm font-medium text-slate-700 rounded hover:bg-slate-50 transition-colors">
+                  <button
+                    onClick={() => navigate(`/plans/${selectedId}`)}
+                    className="btn-dark-ghost flex items-center gap-1.5 px-3 py-2 text-sm font-medium"
+                  >
                     <FileText size={13} />
                     View Full Plan
                   </button>
                 )}
-                <button onClick={runOptimization} disabled={running} id="run-optimization-btn"
-                  className="flex items-center gap-1.5 px-4 py-2 bg-blue-900 hover:bg-blue-800 disabled:opacity-60 text-white text-sm font-medium rounded transition-colors">
+                <button
+                  onClick={runOptimization}
+                  disabled={running}
+                  id="run-optimization-btn"
+                  className="btn-dark-primary flex items-center gap-1.5 px-4 py-2 text-sm font-medium"
+                >
                   <Zap size={14} />
                   {running ? 'Optimizing...' : plan ? 'Re-optimize' : 'Run Optimization'}
                 </button>
@@ -126,42 +132,44 @@ export default function Optimization() {
             {plan && (
               <div className="grid grid-cols-3 gap-5">
                 {/* Left — Event Summary */}
-                <div className="bg-white border border-slate-200 rounded-lg p-5">
-                  <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider mb-4">Event Plan</h3>
+                <div className="glass-card rounded-2xl p-5">
+                  <h3 className="text-[10px] font-semibold text-white/30 uppercase tracking-widest mb-4">Event Plan</h3>
                   <div className="space-y-3">
                     <div>
-                      <p className="text-xs text-slate-500">Predicted Attendance</p>
-                      <p className="text-2xl font-bold text-slate-900 tabular-nums mt-0.5">{plan.predicted_attendance.toLocaleString()}</p>
-                      <p className="text-xs text-slate-400">participants</p>
+                      <p className="text-[10px] text-white/30 uppercase tracking-wider">Predicted Attendance</p>
+                      <p className="text-2xl font-bold tabular-nums mt-0.5" style={{ background: 'linear-gradient(135deg, #818cf8, #c084fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                        {plan.predicted_attendance.toLocaleString()}
+                      </p>
+                      <p className="text-xs text-white/30">participants</p>
                     </div>
-                    <div className="border-t border-slate-100 pt-3">
-                      <p className="text-xs text-slate-500 mb-2">Selected Venues</p>
+                    <div className="border-t border-white/10 pt-3">
+                      <p className="text-[10px] text-white/30 uppercase tracking-wider mb-2">Selected Venues</p>
                       {plan.venues.length === 0 ? (
-                        <p className="text-sm text-red-600">No venues available</p>
+                        <p className="text-sm text-red-400">No venues available</p>
                       ) : plan.venues.map((v: any, i: number) => (
-                        <div key={i} className="text-sm text-slate-700 font-medium py-0.5">{v.name} <span className="text-xs font-normal text-slate-400">({v.capacity} cap)</span></div>
+                        <div key={i} className="text-sm text-white/70 font-medium py-0.5">{v.name} <span className="text-xs font-normal text-white/30">({v.capacity} cap)</span></div>
                       ))}
                     </div>
-                    <div className="border-t border-slate-100 pt-3">
-                      <p className="text-xs text-slate-500 mb-2">Overall Status</p>
+                    <div className="border-t border-white/10 pt-3">
+                      <p className="text-[10px] text-white/30 uppercase tracking-wider mb-2">Overall Status</p>
                       <StatusBadge status={plan.status} />
                     </div>
                   </div>
                 </div>
 
                 {/* Center — Resource Allocation */}
-                <div className="bg-white border border-slate-200 rounded-lg p-5">
-                  <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider mb-4">Resource Allocation</h3>
+                <div className="glass-card rounded-2xl p-5">
+                  <h3 className="text-[10px] font-semibold text-white/30 uppercase tracking-widest mb-4">Resource Allocation</h3>
                   <div className="space-y-3">
                     {plan.resource_allocation.map((r: any) => (
-                      <div key={r.resource} className="flex items-center justify-between py-1.5 border-b border-slate-50 last:border-0">
-                        <span className="text-sm text-slate-700 capitalize font-medium">{r.resource}</span>
+                      <div key={r.resource} className="flex items-center justify-between py-1.5 border-b border-white/5 last:border-0">
+                        <span className="text-sm text-white/70 capitalize font-medium">{r.resource}</span>
                         <div className="text-right">
-                          <span className={`text-sm font-semibold tabular-nums ${r.shortage > 0 ? 'text-red-600' : 'text-slate-900'}`}>
+                          <span className={`text-sm font-semibold tabular-nums ${r.shortage > 0 ? 'text-red-400' : 'text-white/80'}`}>
                             {r.allocated.toLocaleString()} / {r.required.toLocaleString()}
                           </span>
                           {r.shortage > 0 && (
-                            <p className="text-xs text-red-500">−{r.shortage} short</p>
+                            <p className="text-xs text-red-400">−{r.shortage} short</p>
                           )}
                         </div>
                       </div>
@@ -170,26 +178,26 @@ export default function Optimization() {
                 </div>
 
                 {/* Right — Alerts */}
-                <div className="bg-white border border-slate-200 rounded-lg p-5">
-                  <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider mb-4">Alerts</h3>
+                <div className="glass-card rounded-2xl p-5">
+                  <h3 className="text-[10px] font-semibold text-white/30 uppercase tracking-widest mb-4">Alerts</h3>
                   <div className="space-y-3">
                     {plan.alerts.map((a: any, i: number) => (
                       <div key={i} className="flex items-start gap-2.5">
                         {alertIcon(a.level)}
                         <div>
-                          <p className="text-sm font-medium text-slate-900">{a.message}</p>
-                          <p className="text-xs text-slate-500 mt-0.5">{a.detail}</p>
+                          <p className="text-sm font-medium text-white/80">{a.message}</p>
+                          <p className="text-xs text-white/30 mt-0.5">{a.detail}</p>
                         </div>
                       </div>
                     ))}
                   </div>
                   {plan.recommendations.length > 0 && (
                     <>
-                      <div className="border-t border-slate-100 mt-4 pt-4">
-                        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Recommendations</p>
+                      <div className="border-t border-white/10 mt-4 pt-4">
+                        <p className="text-[10px] font-semibold text-white/30 uppercase tracking-widest mb-2">Recommendations</p>
                         <div className="space-y-2">
                           {plan.recommendations.map((r: string, i: number) => (
-                            <p key={i} className="text-xs text-slate-600">→ {r}</p>
+                            <p key={i} className="text-xs text-white/50">→ {r}</p>
                           ))}
                         </div>
                       </div>
@@ -200,16 +208,18 @@ export default function Optimization() {
             )}
 
             {!plan && !running && (
-              <div className="bg-white border border-slate-200 rounded-lg p-12 text-center">
-                <Zap size={24} className="text-slate-300 mx-auto mb-3" />
-                <p className="text-sm text-slate-500">No optimization plan yet. Click "Run Optimization" to generate a resource allocation plan.</p>
+              <div className="glass-card rounded-2xl p-12 text-center">
+                <Zap size={24} className="text-white/20 mx-auto mb-3" />
+                <p className="text-sm text-white/30">No optimization plan yet. Click "Run Optimization" to generate a resource allocation plan.</p>
               </div>
             )}
 
             {plan && (
               <div className="flex justify-end">
-                <button onClick={() => navigate(`/plans/${selectedId}`)}
-                  className="flex items-center gap-1.5 px-5 py-2 bg-blue-900 hover:bg-blue-800 text-white text-sm font-medium rounded transition-colors">
+                <button
+                  onClick={() => navigate(`/plans/${selectedId}`)}
+                  className="btn-dark-primary flex items-center gap-1.5 px-5 py-2 text-sm font-medium"
+                >
                   View Full Logistics Plan
                   <ArrowRight size={14} />
                 </button>
@@ -224,9 +234,9 @@ export default function Optimization() {
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
-    ok: 'bg-green-50 text-green-700 border border-green-200',
-    shortage: 'bg-amber-50 text-amber-700 border border-amber-200',
-    conflict: 'bg-red-50 text-red-700 border border-red-200',
+    ok:       'bg-green-500/15 text-green-300 border border-green-500/25',
+    shortage: 'bg-amber-500/15 text-amber-300 border border-amber-500/25',
+    conflict: 'bg-red-500/15 text-red-300 border border-red-500/25',
   }
   const labels: Record<string, string> = { ok: 'All Good', shortage: 'Shortage Detected', conflict: 'Conflict Detected' }
   return (

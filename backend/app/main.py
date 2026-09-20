@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import auth, events, resources, venues, predictions, optimization, reports, history
+from app.api import auth, events, resources, venues, predictions, optimization, reports, history, sample_data
 from app.core.config import settings
 
 app = FastAPI(
@@ -28,6 +28,8 @@ app.include_router(predictions.router)
 app.include_router(optimization.router)
 app.include_router(reports.router)
 app.include_router(history.router)
+app.include_router(sample_data.router)
+
 
 
 @app.get("/")

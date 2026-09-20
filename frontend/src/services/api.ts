@@ -1,10 +1,13 @@
 import axios from 'axios'
 
-const API_BASE = import.meta.env.VITE_API_URL || ''
+// Always use relative paths — Vite dev proxy handles /api → http://127.0.0.1:8000
+// In production, set VITE_API_URL if backend is on a different origin.
+const API_BASE = import.meta.env.VITE_API_URL ?? ''
 
 const api = axios.create({
   baseURL: API_BASE,
   headers: { 'Content-Type': 'application/json' },
+  withCredentials: false,
 })
 
 // Attach JWT token from localStorage
@@ -33,6 +36,10 @@ api.interceptors.response.use(
 export const authAPI = {
   login: (email: string, password: string) =>
     api.post('/api/auth/login', { email, password }),
+  register: (data: object) =>
+    api.post('/api/auth/register', data),
+  setupInstitution: (data: object) =>
+    api.post('/api/auth/setup-institution', data),
   me: () => api.get('/api/auth/me'),
 }
 
@@ -49,6 +56,8 @@ export const eventsAPI = {
 export const resourcesAPI = {
   list: () => api.get('/api/resources'),
   create: (data: object) => api.post('/api/resources', data),
+  update: (id: number, data: object) => api.put(`/api/resources/${id}`, data),
+  delete: (id: number) => api.delete(`/api/resources/${id}`),
   estimate: (eventId: number) => api.get(`/api/resources/estimate/${eventId}`),
 }
 
@@ -81,6 +90,21 @@ export const reportsAPI = {
 export const historyAPI = {
   list: (eventType?: string) =>
     api.get('/api/history', { params: eventType ? { event_type: eventType } : {} }),
+  create: (data: object) => api.post('/api/history', data),
+  update: (id: number, data: object) => api.put(`/api/history/${id}`, data),
+  delete: (id: number) => api.delete(`/api/history/${id}`),
+  importCsv: (formData: FormData) =>
+    api.post('/api/history/import-csv', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
+  templateCsvUrl: `${API_BASE}/api/history/template-csv`,
+}
+
+// ── Sample Dataset ─────────────────────────────────────────────────────────
+export const sampleDataAPI = {
+  load: () => api.post('/api/sample-data/load'),
+  clear: () => api.delete('/api/sample-data/clear'),
 }
 
 export default api
+

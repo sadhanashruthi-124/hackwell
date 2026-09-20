@@ -1,4 +1,4 @@
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/useAuth'
 import Header from '../components/layout/Header'
 
 export default function Settings() {
@@ -10,44 +10,44 @@ export default function Settings() {
 
       <div className="flex-1 p-8 space-y-5 overflow-auto max-w-2xl">
         {/* Profile */}
-        <div className="bg-white border border-slate-200 rounded-lg">
-          <div className="px-6 py-4 border-b border-slate-200">
-            <h2 className="text-sm font-semibold text-slate-900">Profile</h2>
+        <div className="glass-card rounded-2xl overflow-hidden">
+          <div className="px-6 py-4 border-b border-white/10">
+            <h2 className="text-sm font-semibold text-white">Profile</h2>
           </div>
           <div className="px-6 py-5 space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-1.5">Name</label>
-                <p className="text-sm text-slate-900 font-medium">{user?.name}</p>
+                <label className="block text-[10px] font-semibold text-white/30 uppercase tracking-widest mb-1.5">Name</label>
+                <p className="text-sm text-white font-medium">{user?.name}</p>
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-1.5">Email</label>
-                <p className="text-sm text-slate-900">{user?.email}</p>
+                <label className="block text-[10px] font-semibold text-white/30 uppercase tracking-widest mb-1.5">Email</label>
+                <p className="text-sm text-white/70">{user?.email}</p>
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-1.5">Role</label>
-                <p className="text-sm text-slate-900 capitalize">{user?.role}</p>
+                <label className="block text-[10px] font-semibold text-white/30 uppercase tracking-widest mb-1.5">Role</label>
+                <p className="text-sm text-white/70 capitalize">{user?.role}</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Resource Rules */}
-        <div className="bg-white border border-slate-200 rounded-lg">
-          <div className="px-6 py-4 border-b border-slate-200">
-            <h2 className="text-sm font-semibold text-slate-900">Resource Rules</h2>
-            <p className="text-xs text-slate-500 mt-0.5">Default allocation ratios used by the optimization engine</p>
+        <div className="glass-card rounded-2xl overflow-hidden">
+          <div className="px-6 py-4 border-b border-white/10">
+            <h2 className="text-sm font-semibold text-white">Resource Rules</h2>
+            <p className="text-xs text-white/30 mt-0.5">Default allocation ratios used by the optimization engine</p>
           </div>
           <div className="px-6 py-5">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-slate-100">
-                  <th className="text-left py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">Resource</th>
-                  <th className="text-left py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">Rule</th>
-                  <th className="text-left py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">Value</th>
+                <tr className="border-b border-white/10">
+                  <th className="text-left py-2 text-[10px] font-semibold text-white/30 uppercase tracking-widest">Resource</th>
+                  <th className="text-left py-2 text-[10px] font-semibold text-white/30 uppercase tracking-widest">Rule</th>
+                  <th className="text-left py-2 text-[10px] font-semibold text-white/30 uppercase tracking-widest">Value</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50">
+              <tbody className="divide-y divide-white/5">
                 {[
                   ['Computers', '1 per participant', '1:1'],
                   ['Chairs', '1.05 per participant (+5% buffer)', '1.05:1'],
@@ -55,9 +55,9 @@ export default function Settings() {
                   ['Buses', '1 per 112 participants', '1:112'],
                 ].map(([resource, rule, value]) => (
                   <tr key={resource}>
-                    <td className="py-3 font-medium text-slate-900">{resource}</td>
-                    <td className="py-3 text-slate-600">{rule}</td>
-                    <td className="py-3 text-slate-700 font-mono text-xs">{value}</td>
+                    <td className="py-3 font-medium text-white/80">{resource}</td>
+                    <td className="py-3 text-white/50">{rule}</td>
+                    <td className="py-3 text-indigo-300 font-mono text-xs">{value}</td>
                   </tr>
                 ))}
               </tbody>
@@ -66,9 +66,9 @@ export default function Settings() {
         </div>
 
         {/* System Info */}
-        <div className="bg-white border border-slate-200 rounded-lg">
-          <div className="px-6 py-4 border-b border-slate-200">
-            <h2 className="text-sm font-semibold text-slate-900">System Information</h2>
+        <div className="glass-card rounded-2xl overflow-hidden">
+          <div className="px-6 py-4 border-b border-white/10">
+            <h2 className="text-sm font-semibold text-white">System Information</h2>
           </div>
           <div className="px-6 py-5 space-y-3">
             {[
@@ -79,8 +79,8 @@ export default function Settings() {
               ['Frontend', 'React + TypeScript + Tailwind CSS'],
             ].map(([k, v]) => (
               <div key={k} className="flex justify-between text-sm">
-                <span className="text-slate-500">{k}</span>
-                <span className="text-slate-900 font-medium">{v}</span>
+                <span className="text-white/30">{k}</span>
+                <span className="text-white/70 font-medium">{v}</span>
               </div>
             ))}
           </div>

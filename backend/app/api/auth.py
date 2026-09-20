@@ -4,8 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.database.database import get_db
-from app.models.user import User
-from app.schemas.schemas import LoginRequest, TokenResponse, UserCreate, UserOut
+from app.models.user import User, UserRole
+from app.schemas.schemas import LoginRequest, TokenResponse, UserCreate, UserOut, InstitutionSetupRequest
 from app.core.security import hash_password, verify_password, create_access_token, decode_token
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
@@ -46,7 +46,7 @@ async def login(data: LoginRequest, db: AsyncSession = Depends(get_db)):
     )
 
 
-@router.post("/register", response_model=UserOut, status_code=201)
+@router.post("/register", response_model=TokenResponse, status_code=201)
 async def register(data: UserCreate, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User).where(User.email == data.email))
     if result.scalar_one_or_none():
@@ -55,13 +55,39 @@ async def register(data: UserCreate, db: AsyncSession = Depends(get_db)):
         name=data.name,
         email=data.email,
         password_hash=hash_password(data.password),
-        role=data.role,
+        institution_name=data.institution_name or "",
+        campus_name=data.campus_name or "",
+        location=data.location or "",
+        student_population=data.student_population or 0,
+        role=UserRole.organizer,
     )
     db.add(user)
     await db.flush()
-    return user
+    token = create_access_token({"sub": str(user.id), "role": user.role.value})
+    return TokenResponse(
+        access_token=token,
+        user_id=user.id,
+        name=user.name,
+        role=user.role.value,
+    )
+
+
+@router.post("/setup-institution", response_model=UserOut)
+async def setup_institution(
+    data: InstitutionSetupRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    current_user.institution_name = data.institution_name
+    current_user.campus_name = data.campus_name or ""
+    current_user.location = data.location or ""
+    current_user.student_population = data.student_population or 0
+    current_user.onboarding_completed = True
+    await db.flush()
+    return current_user
 
 
 @router.get("/me", response_model=UserOut)
 async def me(current_user: User = Depends(get_current_user)):
     return current_user
+

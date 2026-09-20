@@ -1,5 +1,5 @@
 from typing import Optional
-from datetime import date, time
+from datetime import date, time, datetime
 from pydantic import BaseModel, EmailStr
 
 
@@ -22,7 +22,18 @@ class UserCreate(BaseModel):
     name: str
     email: EmailStr
     password: str
+    institution_name: Optional[str] = ""
+    campus_name: Optional[str] = ""
+    location: Optional[str] = ""
+    student_population: Optional[int] = 0
     role: str = "organizer"
+
+
+class InstitutionSetupRequest(BaseModel):
+    institution_name: str
+    campus_name: Optional[str] = ""
+    location: Optional[str] = ""
+    student_population: Optional[int] = 0
 
 
 class UserOut(BaseModel):
@@ -30,7 +41,53 @@ class UserOut(BaseModel):
     name: str
     email: str
     role: str
-    created_at: Optional[str] = None
+    institution_name: Optional[str] = None
+    campus_name: Optional[str] = None
+    location: Optional[str] = None
+    student_population: Optional[int] = None
+    onboarding_completed: bool = False
+    created_at: Optional[datetime] = None
+
+    model_config = {"from_attributes": True}
+
+
+# ── Historical Events ─────────────────────────────────────────────────────────
+
+class HistoricalEventCreate(BaseModel):
+    event_name: Optional[str] = None
+    event_type: str
+    event_date: date
+    registrations: int
+    teams: Optional[int] = None
+    duration_hours: int = 8
+    attendance: int
+    venue_type: str = "indoor"
+
+
+class HistoricalEventUpdate(BaseModel):
+    event_name: Optional[str] = None
+    event_type: Optional[str] = None
+    event_date: Optional[date] = None
+    registrations: Optional[int] = None
+    teams: Optional[int] = None
+    duration_hours: Optional[int] = None
+    attendance: Optional[int] = None
+    venue_type: Optional[str] = None
+
+
+class HistoricalEventOut(BaseModel):
+    id: int
+    event_name: Optional[str] = None
+    event_type: str
+    event_date: date
+    registrations: int
+    teams: Optional[int] = None
+    duration_hours: int
+    attendance: int
+    venue_type: str
+    day_of_week: int
+    month: int
+    attendance_rate: float
 
     model_config = {"from_attributes": True}
 

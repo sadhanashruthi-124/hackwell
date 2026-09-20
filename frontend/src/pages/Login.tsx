@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import { useNavigate, Link } from 'react-router-dom'
+import { useAuth } from '../context/useAuth'
 import { Eye, EyeOff, Grid2X2 } from 'lucide-react'
 
 export default function Login() {
-  const [email, setEmail] = useState('organizer@hackwell.edu')
-  const [password, setPassword] = useState('organizer123')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [showPwd, setShowPwd] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -20,34 +20,44 @@ export default function Login() {
       await login(email, password)
       navigate('/dashboard')
     } catch {
-      setError('Invalid email or password')
+      setError('Invalid email or password. Please try again.')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
-      <div className="w-full max-w-sm">
+    <div className="min-h-screen bg-black flex items-center justify-center px-4"
+      style={{ background: 'radial-gradient(ellipse at 60% 0%, rgba(99,102,241,0.12) 0%, #000 60%)' }}
+    >
+      <div className="w-full max-w-sm animate-fade-in">
         {/* Logo */}
         <div className="flex items-center justify-center gap-2.5 mb-8">
-          <div className="w-9 h-9 bg-blue-900 rounded-lg flex items-center justify-center">
+          <div
+            className="w-9 h-9 rounded-xl flex items-center justify-center"
+            style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', boxShadow: '0 4px 16px rgba(99,102,241,0.4)' }}
+          >
             <Grid2X2 size={18} className="text-white" />
           </div>
-          <span className="text-xl font-semibold text-blue-900">HackWell</span>
+          <span
+            className="text-xl font-bold"
+            style={{ background: 'linear-gradient(135deg, #818cf8, #c084fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}
+          >
+            HackWell
+          </span>
         </div>
 
         {/* Card */}
-        <div className="bg-white border border-slate-200 rounded-lg p-8">
+        <div className="glass-card rounded-2xl p-8">
           <div className="mb-6">
-            <h2 className="text-lg font-semibold text-slate-900">Sign in to your account</h2>
-            <p className="text-sm text-slate-500 mt-1">Event Planning & Resource Optimization</p>
+            <h2 className="text-lg font-semibold text-white">Sign in to your account</h2>
+            <p className="text-sm text-white/40 mt-1">Event Planning & Resource Optimization</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1.5">
-                Email address
+              <label htmlFor="email" className="block text-xs font-medium text-white/60 uppercase tracking-wider mb-1.5">
+                Email Address
               </label>
               <input
                 id="email"
@@ -55,13 +65,13 @@ export default function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full h-9 px-3 text-sm border border-slate-200 rounded focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 transition"
+                className="input-dark w-full h-10 px-3 text-sm"
                 placeholder="you@institution.edu"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-1.5">
+              <label htmlFor="password" className="block text-xs font-medium text-white/60 uppercase tracking-wider mb-1.5">
                 Password
               </label>
               <div className="relative">
@@ -71,12 +81,13 @@ export default function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full h-9 px-3 pr-9 text-sm border border-slate-200 rounded focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 transition"
+                  className="input-dark w-full h-10 px-3 pr-9 text-sm"
+                  placeholder="••••••••"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPwd(!showPwd)}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/70 transition-colors"
                 >
                   {showPwd ? <EyeOff size={14} /> : <Eye size={14} />}
                 </button>
@@ -84,47 +95,24 @@ export default function Login() {
             </div>
 
             {error && (
-              <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2">{error}</p>
+              <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">{error}</p>
             )}
 
             <button
               id="login-btn"
               type="submit"
               disabled={loading}
-              className="w-full h-9 bg-blue-900 hover:bg-blue-800 disabled:opacity-60 text-white text-sm font-medium rounded transition-colors"
+              className="btn-dark-primary w-full h-10 text-sm font-semibold justify-center"
             >
               {loading ? 'Signing in...' : 'Sign in'}
             </button>
           </form>
 
-          {/* Demo credentials hint */}
-          <div className="mt-5 p-3 bg-slate-50 border border-slate-200 rounded text-xs text-slate-600">
-            <p className="font-medium mb-1.5 text-slate-700">Quick fill demo credentials:</p>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                id="fill-organizer-btn"
-                onClick={() => {
-                  setEmail('organizer@hackwell.edu')
-                  setPassword('organizer123')
-                }}
-                className="px-2 py-1 bg-white border border-slate-300 rounded text-slate-700 hover:bg-slate-100 font-medium text-xs transition"
-              >
-                Organizer
-              </button>
-              <button
-                type="button"
-                id="fill-admin-btn"
-                onClick={() => {
-                  setEmail('admin@hackwell.edu')
-                  setPassword('admin123')
-                }}
-                className="px-2 py-1 bg-white border border-slate-300 rounded text-slate-700 hover:bg-slate-100 font-medium text-xs transition"
-              >
-                Admin
-              </button>
-            </div>
-            <p className="mt-2 text-slate-500">organizer@hackwell.edu / organizer123</p>
+          <div className="mt-6 text-center text-xs text-white/30">
+            Don't have an account?{' '}
+            <Link to="/register" className="text-indigo-400 font-semibold hover:text-indigo-300 transition-colors">
+              Create Account
+            </Link>
           </div>
         </div>
       </div>

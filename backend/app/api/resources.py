@@ -41,6 +41,43 @@ async def create_resource(
     return resource
 
 
+@router.put("/{resource_id}", response_model=ResourceOut)
+async def update_resource(
+    resource_id: int,
+    data: ResourceCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    result = await db.execute(select(Resource).where(Resource.id == resource_id))
+    resource = result.scalar_one_or_none()
+    if not resource:
+        raise HTTPException(status_code=404, detail="Resource not found")
+    
+    for field, value in data.model_dump(exclude_none=True).items():
+        setattr(resource, field, value)
+    
+    await db.flush()
+    used = resource.total_quantity - resource.available_quantity
+    pct = round((used / resource.total_quantity) * 100, 1) if resource.total_quantity > 0 else 0
+    obj = ResourceOut.model_validate(resource)
+    obj.utilization_pct = pct
+    return obj
+
+
+@router.delete("/{resource_id}", status_code=204)
+async def delete_resource(
+    resource_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    result = await db.execute(select(Resource).where(Resource.id == resource_id))
+    resource = result.scalar_one_or_none()
+    if not resource:
+        raise HTTPException(status_code=404, detail="Resource not found")
+    await db.delete(resource)
+
+
+
 @router.get("/estimate/{event_id}")
 async def estimate_resources(
     event_id: int,
