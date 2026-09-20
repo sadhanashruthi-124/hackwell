@@ -231,7 +231,7 @@ export default function History() {
             </button>
             <a
               href={historyAPI.templateCsvUrl}
-              download="hackwell_historical_template.csv"
+              download="eventoptima_historical_template.csv"
               className="btn-dark-ghost flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium"
             >
               <Download size={13} />

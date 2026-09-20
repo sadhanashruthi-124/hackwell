@@ -56,7 +56,7 @@ export default function Onboarding() {
             className="text-xl font-bold"
             style={{ background: 'linear-gradient(135deg, #818cf8, #c084fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}
           >
-            HackWell Workspace Setup
+            EventOptima Workspace Setup
           </span>
         </div>
 
@@ -257,7 +257,7 @@ export default function Onboarding() {
       </div>
 
       <p className="text-center text-xs text-white/20 mt-8">
-        HackWell Platform — Strict Data-Driven Architecture
+        EventOptima Platform — Strict Data-Driven Architecture
       </p>
     </div>
   )

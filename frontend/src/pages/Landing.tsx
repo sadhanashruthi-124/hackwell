@@ -124,7 +124,7 @@ export default function Landing() {
               <div style={{ width: 36, height: 36, background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(99,102,241,0.4)' }}>
                 <Zap size={18} color="white" />
               </div>
-              <span style={{ fontSize: 20, fontWeight: 800, background: 'linear-gradient(135deg, #818cf8, #c084fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>HackWell</span>
+              <span style={{ fontSize: 20, fontWeight: 800, background: 'linear-gradient(135deg, #818cf8, #c084fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>EventOptima</span>
             </div>
             <nav style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               {user ? (
@@ -173,7 +173,7 @@ export default function Landing() {
                   <div style={{ display: 'flex', gap: 6 }}>
                     {['#ff5f57','#febc2e','#28c840'].map(c => <div key={c} style={{ width: 12, height: 12, borderRadius: '50%', background: c }} />)}
                   </div>
-                  <span style={{ fontSize: 12, color: '#475569', fontFamily: 'monospace' }}>hackwell — prediction output</span>
+                  <span style={{ fontSize: 12, color: '#475569', fontFamily: 'monospace' }}>eventoptima — prediction output</span>
                 </div>
                 <div style={{ fontFamily: 'monospace', fontSize: 13, textAlign: 'left', lineHeight: 2 }}>
                   <div style={{ color: '#64748b' }}>$ predict_attendance --event "TechFest 2026"</div>
@@ -216,7 +216,7 @@ export default function Landing() {
             <div style={{ textAlign: 'center', marginBottom: 56 }}>
               <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', color: '#6366f1', textTransform: 'uppercase', marginBottom: 12 }}>The Intelligence Pipeline</div>
               <h2 style={{ fontSize: 36, fontWeight: 800, color: '#f1f5f9', marginBottom: 16, letterSpacing: '-0.02em' }}>From raw data to actionable plans</h2>
-              <p style={{ fontSize: 15, color: '#64748b', maxWidth: 480, margin: '0 auto' }}>HackWell transforms your institutional history into optimized, conflict-free event logistics.</p>
+              <p style={{ fontSize: 15, color: '#64748b', maxWidth: 480, margin: '0 auto' }}>EventOptima transforms your institutional history into optimized, conflict-free event logistics.</p>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 20 }}>
               <PipelineCard step={1} icon={Database} title="Historical Records" color="indigo" delay="0.1s" desc="Import past attendance, registrations, and duration data to build your institution's unique baseline." />
@@ -231,9 +231,9 @@ export default function Landing() {
         <section style={{ padding: '80px 24px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
           <div style={{ maxWidth: 1100, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 60, alignItems: 'center' }}>
             <div>
-              <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', color: '#8b5cf6', textTransform: 'uppercase', marginBottom: 12 }}>Why HackWell</div>
+              <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', color: '#8b5cf6', textTransform: 'uppercase', marginBottom: 12 }}>Why EventOptima</div>
               <h2 style={{ fontSize: 34, fontWeight: 800, color: '#f1f5f9', marginBottom: 20, letterSpacing: '-0.02em', lineHeight: 1.2 }}>Built for institutional event organizers</h2>
-              <p style={{ fontSize: 15, color: '#64748b', lineHeight: 1.7, marginBottom: 32 }}>No more spreadsheets, no more guesswork. HackWell gives you a complete data pipeline from historical import to final report export.</p>
+              <p style={{ fontSize: 15, color: '#64748b', lineHeight: 1.7, marginBottom: 32 }}>No more spreadsheets, no more guesswork. EventOptima gives you a complete data pipeline from historical import to final report export.</p>
               <div>
                 {[
                   { icon: Shield, label: 'Zero fake data', desc: 'Every prediction is trained on your real institutional history.' },
@@ -297,7 +297,7 @@ export default function Landing() {
 
         {/* FOOTER */}
         <footer style={{ borderTop: '1px solid rgba(255,255,255,0.05)', padding: '28px 24px', textAlign: 'center', fontSize: 13, color: '#334155' }}>
-          &copy; 2026 HackWell Platform &mdash; Intelligent Event Planning &amp; Resource Optimization for Institutions.
+          &copy; 2026 EventOptima Platform &mdash; Intelligent Event Planning &amp; Resource Optimization for Institutions.
         </footer>
       </div>
     </>

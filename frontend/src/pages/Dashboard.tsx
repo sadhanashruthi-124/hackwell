@@ -100,7 +100,7 @@ export default function Dashboard() {
         <div className="glass-card rounded-2xl p-6 flex flex-wrap items-center justify-between gap-4">
           <div>
             <h1 className="text-base font-bold text-white">
-              Welcome to HackWell{user?.name ? `, ${user.name}` : ''}
+              Welcome to EventOptima{user?.name ? `, ${user.name}` : ''}
             </h1>
             <p className="text-xs text-white/40 mt-0.5">
               {user?.institution_name ? `${user.institution_name} · ` : ''}Your event planning & resource optimization workspace

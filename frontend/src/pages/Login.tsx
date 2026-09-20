@@ -43,7 +43,7 @@ export default function Login() {
             className="text-xl font-bold"
             style={{ background: 'linear-gradient(135deg, #818cf8, #c084fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}
           >
-            HackWell
+            EventOptima
           </span>
         </div>
 

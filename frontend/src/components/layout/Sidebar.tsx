@@ -66,7 +66,7 @@ export default function Sidebar() {
             className="text-[15px] font-bold tracking-tight block"
             style={{ background: 'linear-gradient(135deg, #818cf8, #c084fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}
           >
-            HackWell
+            EventOptima
           </span>
           {user?.institution_name && (
             <span className="text-[10px] text-white/40 truncate block max-w-[150px]">
