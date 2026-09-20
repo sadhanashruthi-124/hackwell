@@ -18,6 +18,7 @@ Output:
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.multioutput import MultiOutputRegressor
 from sklearn.preprocessing import LabelEncoder
 
 EVENT_TYPES = [
@@ -114,5 +115,87 @@ def predict_from_records(
         "confidence_high": high,
         "historical_count": len(records),
         "model_name": "Random Forest Regression",
+    }
+
+
+def train_resource_model_on_records(records: list) -> tuple[MultiOutputRegressor, LabelEncoder]:
+    """Train a multi-output Random Forest regressor to predict resources."""
+    if len(records) < 3:
+        raise ValueError("Minimum 3 historical events required for ML prediction.")
+
+    enc = _build_encoder()
+    data = []
+    for r in records:
+        et = r.event_type if hasattr(r, "event_type") else r.get("event_type", "other")
+        try:
+            et_enc = enc.transform([et.lower()])[0]
+        except Exception:
+            et_enc = 7
+
+        regs = r.registrations if hasattr(r, "registrations") else r.get("registrations", 0)
+        teams = (r.teams if hasattr(r, "teams") else r.get("teams", 0)) or 0
+        dur = (r.duration_hours if hasattr(r, "duration_hours") else r.get("duration_hours", 8)) or 8
+        dow = (r.day_of_week if hasattr(r, "day_of_week") else r.get("day_of_week", 0)) or 0
+        month = (r.month if hasattr(r, "month") else r.get("month", 1)) or 1
+        
+        comp = r.req_computers if hasattr(r, "req_computers") else r.get("req_computers", 0)
+        proj = r.req_projectors if hasattr(r, "req_projectors") else r.get("req_projectors", 0)
+        chairs = r.req_chairs if hasattr(r, "req_chairs") else r.get("req_chairs", 0)
+        buses = r.req_buses if hasattr(r, "req_buses") else r.get("req_buses", 0)
+
+        data.append({
+            "event_type": et_enc,
+            "registrations": regs,
+            "teams": teams,
+            "duration_hours": dur,
+            "day_of_week": dow,
+            "month": month,
+            "computers": comp,
+            "projectors": proj,
+            "chairs": chairs,
+            "buses": buses,
+        })
+
+    df = pd.DataFrame(data)
+    X = df[["event_type", "registrations", "teams", "duration_hours", "day_of_week", "month"]]
+    y = df[["computers", "projectors", "chairs", "buses"]]
+
+    n_trees = min(100, max(20, len(records) * 5))
+    base_model = RandomForestRegressor(
+        n_estimators=n_trees,
+        max_depth=6,
+        min_samples_split=2,
+        random_state=42,
+    )
+    model = MultiOutputRegressor(base_model)
+    model.fit(X, y)
+    return model, enc
+
+
+def predict_resources_from_records(
+    records: list,
+    event_type: str,
+    registrations: int,
+    teams: int,
+    duration_hours: int,
+    day_of_week: int,
+    month: int,
+) -> dict:
+    """Predict computers, projectors, chairs, and buses."""
+    model, enc = train_resource_model_on_records(records)
+    try:
+        et_encoded = enc.transform([event_type.lower()])[0]
+    except Exception:
+        et_encoded = 7
+
+    X = np.array([[et_encoded, registrations, teams, duration_hours, day_of_week, month]])
+
+    preds = model.predict(X)[0]
+    
+    return {
+        "computers": max(0, int(np.round(preds[0]))),
+        "projectors": max(0, int(np.round(preds[1]))),
+        "chairs": max(0, int(np.round(preds[2]))),
+        "buses": max(0, int(np.round(preds[3]))),
     }
 

@@ -62,6 +62,10 @@ class HistoricalEventCreate(BaseModel):
     duration_hours: int = 8
     attendance: int
     venue_type: str = "indoor"
+    req_computers: int = 0
+    req_projectors: int = 0
+    req_chairs: int = 0
+    req_buses: int = 0
 
 
 class HistoricalEventUpdate(BaseModel):
@@ -73,6 +77,10 @@ class HistoricalEventUpdate(BaseModel):
     duration_hours: Optional[int] = None
     attendance: Optional[int] = None
     venue_type: Optional[str] = None
+    req_computers: Optional[int] = None
+    req_projectors: Optional[int] = None
+    req_chairs: Optional[int] = None
+    req_buses: Optional[int] = None
 
 
 class HistoricalEventOut(BaseModel):
@@ -88,6 +96,10 @@ class HistoricalEventOut(BaseModel):
     day_of_week: int
     month: int
     attendance_rate: float
+    req_computers: int
+    req_projectors: int
+    req_chairs: int
+    req_buses: int
 
     model_config = {"from_attributes": True}
 

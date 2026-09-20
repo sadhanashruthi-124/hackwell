@@ -6,14 +6,15 @@ from app.database.database import get_db
 from app.models.event import Event
 from app.models.event_plan import EventPlan
 from app.models.historical_event import HistoricalEvent
-from app.models.resource import Resource
+from app.models.resource import Resource, ResourceStatus
 from app.models.venue import Venue
 from app.models.allocation import Allocation
 from app.models.user import User
 from app.schemas.schemas import OptimizationOut
 from app.api.auth import get_current_user
 from app.optimization.allocation_engine import run_allocation
-from app.ml.attendance_model import predict_from_records
+from app.ml.attendance_model import predict_from_records, predict_resources_from_records
+from app.services.resource_service import estimate_demand
 
 router = APIRouter(prefix="/api/optimization", tags=["optimization"])
 
@@ -68,7 +69,7 @@ async def run_optimization(
     predicted_attendance = plan.predicted_attendance
 
     # Fetch available resources grouped by type
-    res_result = await db.execute(select(Resource).where(Resource.status == "available"))
+    res_result = await db.execute(select(Resource).where(Resource.status == ResourceStatus.available))
     resources = res_result.scalars().all()
     available_resources: dict[str, int] = {}
     for r in resources:
@@ -91,12 +92,30 @@ async def run_optimization(
         "buses": event.req_buses,
     }
 
+    # Predict demand using ML if we have enough historical data
+    hist_result = await db.execute(select(HistoricalEvent))
+    historical_records = hist_result.scalars().all()
+    if len(historical_records) >= 3:
+        demand = predict_resources_from_records(
+            records=historical_records,
+            event_type=event.event_type.value,
+            registrations=event.registrations,
+            teams=event.teams or 0,
+            duration_hours=event.duration_hours,
+            day_of_week=event.date.weekday(),
+            month=event.date.month,
+        )
+    else:
+        # Fallback to simple heuristics
+        demand = estimate_demand(predicted_attendance, event.duration_hours, event.event_type.value)
+
     result_plan = run_allocation(
         predicted_attendance=predicted_attendance,
         event_type=event.event_type.value,
         duration_hours=event.duration_hours,
         available_resources=available_resources,
         venues=venues,
+        demand=demand,
         req_resources=req_resources,
     )
 

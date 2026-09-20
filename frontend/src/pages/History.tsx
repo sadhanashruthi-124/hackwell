@@ -41,6 +41,10 @@ export default function History() {
   const [durationHours, setDurationHours] = useState(24)
   const [attendance, setAttendance] = useState(672)
   const [venueType, setVenueType] = useState('indoor')
+  const [reqComputers, setReqComputers] = useState(0)
+  const [reqProjectors, setReqProjectors] = useState(0)
+  const [reqChairs, setReqChairs] = useState(0)
+  const [reqBuses, setReqBuses] = useState(0)
   const [formError, setFormError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
@@ -76,6 +80,10 @@ export default function History() {
     setDurationHours(8)
     setAttendance(420)
     setVenueType('indoor')
+    setReqComputers(10)
+    setReqProjectors(2)
+    setReqChairs(500)
+    setReqBuses(1)
     setFormError('')
     setAddModalOpen(true)
   }
@@ -90,6 +98,10 @@ export default function History() {
     setDurationHours(rec.duration_hours)
     setAttendance(rec.attendance)
     setVenueType(rec.venue_type)
+    setReqComputers(rec.req_computers ?? 0)
+    setReqProjectors(rec.req_projectors ?? 0)
+    setReqChairs(rec.req_chairs ?? 0)
+    setReqBuses(rec.req_buses ?? 0)
     setFormError('')
     setAddModalOpen(true)
   }
@@ -120,6 +132,10 @@ export default function History() {
         duration_hours: Number(durationHours),
         attendance: Number(attendance),
         venue_type: venueType,
+        req_computers: Number(reqComputers),
+        req_projectors: Number(reqProjectors),
+        req_chairs: Number(reqChairs),
+        req_buses: Number(reqBuses),
       }
       if (editId) {
         await historyAPI.update(editId, payload)
@@ -388,6 +404,28 @@ export default function History() {
                 </div>
               </div>
 
+              <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-white/10">
+                <div className="col-span-2">
+                  <h4 className="text-[10px] font-semibold text-white/40 uppercase tracking-widest">Resource Usage (For ML Prediction)</h4>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-semibold text-white/40 uppercase tracking-widest mb-1.5">Computers</label>
+                  <input type="number" min="0" value={reqComputers} onChange={(e) => setReqComputers(Number(e.target.value))} className="input-dark w-full h-9 px-3 text-sm tabular-nums" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-semibold text-white/40 uppercase tracking-widest mb-1.5">Projectors</label>
+                  <input type="number" min="0" value={reqProjectors} onChange={(e) => setReqProjectors(Number(e.target.value))} className="input-dark w-full h-9 px-3 text-sm tabular-nums" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-semibold text-white/40 uppercase tracking-widest mb-1.5">Chairs</label>
+                  <input type="number" min="0" value={reqChairs} onChange={(e) => setReqChairs(Number(e.target.value))} className="input-dark w-full h-9 px-3 text-sm tabular-nums" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-semibold text-white/40 uppercase tracking-widest mb-1.5">Buses</label>
+                  <input type="number" min="0" value={reqBuses} onChange={(e) => setReqBuses(Number(e.target.value))} className="input-dark w-full h-9 px-3 text-sm tabular-nums" />
+                </div>
+              </div>
+
               {formError && <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg p-2">{formError}</p>}
 
               <div className="flex justify-end gap-2 pt-2 border-t border-white/10">
@@ -438,7 +476,7 @@ export default function History() {
 
             <form onSubmit={handleImportCsv} className="space-y-4">
               <p className="text-xs text-white/40">
-                Upload a CSV file containing historical institutional event records. Required columns: <code className="bg-white/10 px-1 py-0.5 rounded text-indigo-300 font-mono">event_name, event_type, date, registrations, teams, duration, attendance, venue_type</code>.
+                Upload a CSV file containing historical institutional event records. Required columns: <code className="bg-white/10 px-1 py-0.5 rounded text-indigo-300 font-mono">event_name, event_type, date, registrations, teams, duration, attendance, venue_type, req_computers, req_projectors, req_chairs, req_buses</code>.
               </p>
 
               <div

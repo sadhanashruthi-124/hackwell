@@ -162,15 +162,17 @@ export default function Optimization() {
                   <h3 className="text-[10px] font-semibold text-white/30 uppercase tracking-widest mb-4">Resource Allocation</h3>
                   <div className="space-y-3">
                     {plan.resource_allocation.map((r: any) => (
-                      <div key={r.resource} className="flex items-center justify-between py-1.5 border-b border-white/5 last:border-0">
-                        <span className="text-sm text-white/70 capitalize font-medium">{r.resource}</span>
-                        <div className="text-right">
-                          <span className={`text-sm font-semibold tabular-nums ${r.shortage > 0 ? 'text-red-400' : 'text-white/80'}`}>
-                            {r.allocated.toLocaleString()} / {r.required.toLocaleString()}
+                      <div key={r.resource} className="flex flex-col py-2 border-b border-white/5 last:border-0">
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-sm text-white/70 capitalize font-medium">{r.resource}</span>
+                          <span className={`text-xs font-semibold tabular-nums px-2 py-0.5 rounded-full ${r.shortage > 0 ? 'bg-red-500/10 text-red-400' : 'bg-green-500/10 text-green-400'}`}>
+                            {r.shortage > 0 ? `−${r.shortage.toLocaleString()} Short` : 'Fully Allocated'}
                           </span>
-                          {r.shortage > 0 && (
-                            <p className="text-xs text-red-400">−{r.shortage} short</p>
-                          )}
+                        </div>
+                        <div className="flex items-center justify-between text-[11px] uppercase tracking-wider text-white/40">
+                          <span>Req: <span className="text-white/70">{r.required.toLocaleString()}</span></span>
+                          <span>Avail: <span className="text-white/70">{r.available.toLocaleString()}</span></span>
+                          <span>Alloc: <span className="text-white/90 font-medium">{r.allocated.toLocaleString()}</span></span>
                         </div>
                       </div>
                     ))}

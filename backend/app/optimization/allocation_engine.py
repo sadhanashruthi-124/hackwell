@@ -13,7 +13,7 @@ Steps:
 9. Return structured plan
 """
 
-from app.services.resource_service import estimate_demand
+
 
 
 def run_allocation(
@@ -22,9 +22,9 @@ def run_allocation(
     duration_hours: int,
     available_resources: dict,    # {"computers": 650, "projectors": 8, ...}
     venues: list[dict],           # [{"name": ..., "capacity": ...}, ...]
+    demand: dict,                 # {"computers": 100, ...} predicted demand
     req_resources: dict | None = None,  # explicitly requested by organizer
 ) -> dict:
-    demand = estimate_demand(predicted_attendance, duration_hours, event_type)
 
     # Override with explicitly requested quantities if provided
     if req_resources:

@@ -39,6 +39,10 @@ async def list_history(
             "day_of_week": r.day_of_week,
             "month": r.month,
             "attendance_rate": r.attendance_rate,
+            "req_computers": r.req_computers,
+            "req_projectors": r.req_projectors,
+            "req_chairs": r.req_chairs,
+            "req_buses": r.req_buses,
         }
         for r in rows
     ]
@@ -69,6 +73,10 @@ async def create_historical_event(
         day_of_week=day_of_week,
         month=month,
         attendance_rate=rate,
+        req_computers=data.req_computers,
+        req_projectors=data.req_projectors,
+        req_chairs=data.req_chairs,
+        req_buses=data.req_buses,
     )
     db.add(rec)
     await db.flush()
@@ -121,10 +129,10 @@ async def delete_historical_event(
 async def download_csv_template(current_user: User = Depends(get_current_user)):
     output = io.StringIO()
     writer = csv.writer(output)
-    writer.writerow(["event_name", "event_type", "date", "registrations", "teams", "duration", "attendance", "venue_type"])
-    writer.writerow(["Annual Hackathon 2025", "hackathon", "2025-10-12", "800", "200", "24", "672", "indoor"])
-    writer.writerow(["Tech Symposium 2025", "symposium", "2025-09-20", "400", "0", "8", "352", "indoor"])
-    writer.writerow(["Cultural Fest 2025", "cultural", "2025-01-26", "1200", "0", "8", "936", "outdoor"])
+    writer.writerow(["event_name", "event_type", "date", "registrations", "teams", "duration", "attendance", "venue_type", "req_computers", "req_projectors", "req_chairs", "req_buses"])
+    writer.writerow(["Annual Hackathon 2025", "hackathon", "2025-10-12", "800", "200", "24", "672", "indoor", "650", "10", "700", "6"])
+    writer.writerow(["Tech Symposium 2025", "symposium", "2025-09-20", "400", "0", "8", "352", "indoor", "50", "4", "400", "2"])
+    writer.writerow(["Cultural Fest 2025", "cultural", "2025-01-26", "1200", "0", "8", "936", "outdoor", "10", "6", "1000", "8"])
     
     return Response(
         content=output.getvalue(),
@@ -159,7 +167,7 @@ async def import_csv(
         missing = required_cols - set(field_map.keys())
         raise HTTPException(
             status_code=400,
-            detail=f"Missing required CSV columns: {', '.join(missing)}. Required: event_name, event_type, date, registrations, teams, duration, attendance, venue_type",
+            detail=f"Missing required CSV columns: {', '.join(missing)}. Required: event_name, event_type, date, registrations, teams, duration, attendance, venue_type, req_computers, req_projectors, req_chairs, req_buses",
         )
 
     imported_count = 0
@@ -180,6 +188,11 @@ async def import_csv(
 
             vt = row.get(field_map.get("venue_type", ""), "indoor").strip().lower() or "indoor"
 
+            computers = int(row.get(field_map.get("req_computers", ""), 0) or 0)
+            projectors = int(row.get(field_map.get("req_projectors", ""), 0) or 0)
+            chairs = int(row.get(field_map.get("req_chairs", ""), 0) or 0)
+            buses = int(row.get(field_map.get("req_buses", ""), 0) or 0)
+
             if regs <= 0:
                 continue
 
@@ -196,6 +209,10 @@ async def import_csv(
                 day_of_week=ev_date.weekday(),
                 month=ev_date.month,
                 attendance_rate=rate,
+                req_computers=computers,
+                req_projectors=projectors,
+                req_chairs=chairs,
+                req_buses=buses,
             )
             db.add(rec)
             imported_count += 1
